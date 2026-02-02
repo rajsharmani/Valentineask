@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>For You ❤️</title>
+
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800&family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+
+<style>
+:root{
+  --pink1:#ffd1dc;--pink2:#ffb6c9;--pink3:#ff9db8;
+  --card:rgba(255,255,255,.65);
+  --yes:#d81b60;--yesHover:#c2185b;
+  --textDark:#5a0032;--textSoft:#7a3352;
+}
+
+*{box-sizing:border-box}
+
+body{
+  margin:0;min-height:100svh;
+  display:grid;place-items:center;
+  background:radial-gradient(circle at top,var(--pink1),var(--pink2),var(--pink3));
+  font-family:"Poppins",system-ui,sans-serif;
+  overflow:hidden;padding:16px;
+  color:var(--textDark);
+}
+
+/* ===== HEART RAIN ===== */
+.heart {
+  position: fixed;
+  bottom: -20px;
+  font-size: 20px;
+  animation: floatUp 6s linear forwards;
+  pointer-events: none;
+  z-index: 1;
+}
+
+@keyframes floatUp {
+  from {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+  to {
+    transform: translateY(-120vh) scale(1.4);
+    opacity: 0;
+  }
+}
+
+/* CONFETTI */
+#confettiCanvas{
+  position:fixed;inset:0;
+  pointer-events:none;
+  z-index:9999;
+}
+
+/* CARD */
+.card{
+  width:min(720px,92vw);
+  padding:36px 26px 40px;
+  background:var(--card);
+  backdrop-filter:blur(14px);
+  border-radius:30px;
+  text-align:center;
+  box-shadow:0 30px 70px rgba(216,27,96,.25);
+  animation:fade .4s ease;
+  position:relative;
+  z-index:2;
+}
+
+@keyframes fade{
+  from{opacity:0;transform:scale(.96)}
+  to{opacity:1}
+}
+
+h1{
+  font-family:"Playfair Display",serif;
+  font-size:clamp(34px,5vw,56px);
+  margin:10px 0;
+  line-height:1.1;
+}
+
+.subtitle{
+  font-size:14px;
+  color:var(--textSoft);
+  margin-bottom:24px;
+}
+
+button{
+  padding:14px 36px;
+  font-size:18px;
+  font-weight:700;
+  border:none;
+  border-radius:999px;
+  cursor:pointer;
+  background:linear-gradient(135deg,#e91e63,#d81b60);
+  color:#fff;
+  box-shadow:0 12px 28px rgba(216,27,96,.45);
+}
+
+/* BUTTON ZONE */
+.button-zone{
+  position:relative;
+  width:min(520px,92%);
+  height:160px;
+  margin:0 auto;
+  touch-action:none;
+}
+
+.button-zone button{
+  position:absolute;
+  top:50%;
+  transform:translateY(-50%);
+}
+
+#yesBtn{left:20%}
+
+#noBtn{
+  left:62%;
+  background:#fff;
+  color:#444;
+  box-shadow:0 10px 24px rgba(0,0,0,.18);
+}
+
+.hint{
+  margin-top:14px;
+  font-size:13px;
+  color:var(--textSoft);
+}
+
+.result,.final{
+  display:none;
+  margin-top:22px;
+}
+
+.result h2,.final h2{
+  font-family:"Playfair Display",serif;
+  font-size:clamp(34px,5vw,50px);
+  color:var(--yes);
+}
+
+.final p{
+  font-size:18px;
+  line-height:1.6;
+  margin-top:12px;
+}
+</style>
+</head>
+
+<body>
+
+<canvas id="confettiCanvas"></canvas>
+
+<!-- MUSIC -->
+<audio id="bgMusic" loop>
+  <source src="https://cdn.pixabay.com/audio/2023/02/14/audio_2b4f41d5f0.mp3" type="audio/mpeg">
+</audio>
+
+<!-- INTRO -->
+<main class="card" id="introScreen">
+  <h1>Dear Rani ❤️</h1>
+  <p>I want to ask you something…</p>
+  <button id="startBtn">Okay, ask 💕</button>
+</main>
+
+<!-- VALENTINE -->
+<main class="card" id="valentineScreen" style="display:none">
+  <div style="font-size:40px">❤️</div>
+  <h1>Will you be my<br>Valentine?</h1>
+  <div class="subtitle">Choose wisely… 💕</div>
+
+  <section class="button-zone" id="zone">
+    <button id="yesBtn">Yes 💖</button>
+    <button id="noBtn">No</button>
+  </section>
+
+  <div class="hint" id="hint">Hint: The “No” button is a bit shy 😈</div>
+
+  <section class="result" id="result">
+    <h2>YAY! 🎉</h2>
+  </section>
+</main>
+
+<!-- FINAL MESSAGE -->
+<main class="card final" id="finalScreen">
+  <h2>Thank you for choosing me ❤️</h2>
+  <p>
+    From this moment, every smile of yours means the world to me.  
+    I promise to stand by you, laugh with you,  
+    and choose you — every single day. 💕
+  </p>
+</main>
+
+<script>
+/* HEART RAIN LOGIC */
+setInterval(() => {
+  const heart = document.createElement("div");
+  heart.className = "heart";
+  heart.textContent = "❤️";
+  heart.style.left = Math.random() * 100 + "vw";
+  heart.style.fontSize = 16 + Math.random() * 18 + "px";
+  document.body.appendChild(heart);
+  setTimeout(() => heart.remove(), 6000);
+}, 450);
+
+/* START FLOW */
+const introScreen = document.getElementById("introScreen");
+const valentineScreen = document.getElementById("valentineScreen");
+const finalScreen = document.getElementById("finalScreen");
+const bgMusic = document.getElementById("bgMusic");
+
+startBtn.onclick = () => {
+  introScreen.style.display = "none";
+  valentineScreen.style.display = "block";
+  bgMusic.play();
+};
+
+/* CONFETTI */
+const confettiCanvas = document.getElementById("confettiCanvas");
+function resize(){confettiCanvas.width=innerWidth;confettiCanvas.height=innerHeight}
+resize();addEventListener("resize",resize);
+
+const confettiInstance = confetti.create(confettiCanvas,{resize:false,useWorker:true});
+function blast(){
+  confettiInstance({particleCount:300,spread:140,startVelocity:60,origin:{x:.5,y:.6}});
+}
+
+/* RUNAWAY NO */
+let yesScale = 1;
+function growYes(){
+  yesScale = Math.min(2.2, yesScale + 0.1);
+  yesBtn.style.transform = `translateY(-50%) scale(${yesScale})`;
+}
+
+function clamp(n,min,max){return Math.max(min,Math.min(max,n))}
+function moveNo(px,py){
+  navigator.vibrate?.(40);
+  const z=zone.getBoundingClientRect(), b=noBtn.getBoundingClientRect();
+  let dx=(b.left+b.width/2)-px, dy=(b.top+b.height/2)-py;
+  let m=Math.hypot(dx,dy)||1; dx/=m; dy/=m;
+
+  noBtn.style.left = clamp((b.left-z.left)+dx*150,0,z.width-b.width)+"px";
+  noBtn.style.top  = clamp((b.top -z.top )+dy*150,0,z.height-b.height)+"px";
+  noBtn.style.transform = "none";
+  growYes();
+}
+
+zone.addEventListener("pointermove",e=>{
+  const b=noBtn.getBoundingClientRect();
+  if(Math.hypot((b.left+b.width/2)-e.clientX,(b.top+b.height/2)-e.clientY)<140)
+    moveNo(e.clientX,e.clientY);
+});
+
+noBtn.onclick=e=>e.preventDefault();
+
+/* YES */
+yesBtn.onclick=()=>{
+  navigator.vibrate?.([100,50,200]);
+  blast();
+  setTimeout(()=>{
+    valentineScreen.style.display="none";
+    finalScreen.style.display="block";
+  },800);
+};
+</script>
+
+</body>
+</html>
